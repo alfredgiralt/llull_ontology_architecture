@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LlullGen — Target Ontology & Semantic Knowledge Architecture</title>
+<style>
+  :root {
+    --bg: #0b1020;
+    --bg-soft: #111933;
+    --panel: #151d3a;
+    --panel-2: #1b2547;
+    --ink: #e8ecff;
+    --ink-dim: #aab3d6;
+    --accent: #7c9cff;
+    --accent-2: #a885ff;
+    --accent-3: #4fd1c5;
+    --accent-4: #f6a96a;
+    --accent-5: #ff7d9b;
+    --ok: #4ade80;
+    --warn: #fbbf24;
+    --bad: #f87171;
+    --border: rgba(255,255,255,0.08);
+    --border-strong: rgba(255,255,255,0.16);
+    --shadow: 0 10px 30px rgba(0,0,0,0.35);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: radial-gradient(1200px 800px at 10% -10%, #1a2352 0%, transparent 60%),
+                radial-gradient(1000px 700px at 110% 10%, #2a1f5a 0%, transparent 55%),
+                var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+    min-height: 100%;
+  }
+
+  .page { max-width: 1400px; margin: 0 auto; padding: 32px 24px 80px; }
+
+  header.hero {
+    background: linear-gradient(135deg, rgba(124,156,255,0.18), rgba(168,133,255,0.12) 40%, rgba(79,209,197,0.10));
+    border: 1px solid var(--border-strong);
+    border-radius: 20px;
+    padding: 28px 32px;
+    box-shadow: var(--shadow);
+    margin-bottom: 28px;
+    position: relative; overflow: hidden;
+  }
+  header.hero::after{
+    content:""; position:absolute; inset:-1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+    mix-blend-mode: overlay; pointer-events:none;
+  }
+  .hero-kicker {
+    display: inline-block;
+    text-transform: uppercase; letter-spacing: 0.16em;
+    font-size: 11px; color: var(--accent-3);
+    background: rgba(79,209,197,0.08);
+    border: 1px solid rgba(79,209,197,0.25);
+    padding: 5px 10px; border-radius: 999px;
+    margin-bottom: 14px;
+  }
+  .hero h1 { margin: 0 0 8px; font-size: 30px; letter-spacing: -0.01em; }
+  .hero h1 span.grad {
+    background: linear-gradient(90deg, var(--accent), var(--accent-2) 55%, var(--accent-3));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero p { margin: 0; color: var(--ink-dim); max-width: 980px; }
+
+  .hero-meta {
+    display: grid; grid-template-columns: repeat(4, minmax(0,1fr));
+    gap: 12px; margin-top: 20px;
+  }
+  .metric {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 12px 14px;
+  }
+  .metric .label { font-size: 11px; color: var(--ink-dim); text-transform: uppercase; letter-spacing: 0.12em; }
+  .metric .value { font-size: 18px; font-weight: 600; margin-top: 4px; }
+  .metric .value.good { color: var(--ok); }
+  .metric .value.warn { color: var(--warn); }
+  .metric .value.bad { color: var(--bad); }
+
+  /* Legend */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    margin: 18px 0 24px;
+  }
+  .chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 6px 12px; border-radius: 999px; font-size: 12px; color: var(--ink-dim);
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot.l1 { background: var(--accent); }
+  .dot.l2 { background: var(--accent-2); }
+  .dot.l3 { background: var(--accent-3); }
+  .dot.l4 { background: var(--accent-4); }
+  .dot.l5 { background: var(--accent-5); }
+  .dot.l6 { background: var(--ink); }
+
+  /* Flow arrow between layers */
+  .flow-arrow {
+    display: flex; flex-direction: column; align-items: center;
+    margin: -6px 0 -6px;
+    color: var(--ink-dim);
+    font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;
+  }
+  .flow-arrow .line {
+    width: 2px; height: 22px;
+    background: linear-gradient(180deg, var(--border-strong), transparent);
+  }
+  .flow-arrow .badge {
+    margin: 6px 0;
+    background: var(--panel-2);
+    border: 1px solid var(--border-strong);
+    padding: 4px 10px; border-radius: 999px;
+    color: var(--ink);
+  }
+  .flow-arrow .line.down {
+    background: linear-gradient(180deg, transparent, var(--border-strong));
+  }
+  .flow-arrow .caret {
+    width: 0; height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 10px solid var(--border-strong);
+    margin-top: 2px;
+  }
+
+  /* Layer card */
+  .layer {
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border: 1px solid var(--border-strong);
+    border-radius: 18px;
+    padding: 20px 22px;
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+  .layer + .layer { margin-top: 10px; }
+  .layer-head {
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 14px;
+  }
+  .layer-index {
+    width: 44px; height: 44px; border-radius: 12px;
+    display: grid; place-items: center;
+    font-weight: 700; font-size: 18px;
+    color: #0b1020;
+    flex-shrink: 0;
+  }
+  .layer-head h2 { margin: 0; font-size: 20px; letter-spacing: -0.01em; }
+  .layer-head .tag {
+    margin-left: auto;
+    font-size: 11px; color: var(--ink-dim);
+    text-transform: uppercase; letter-spacing: 0.12em;
+  }
+
+  .l1 .layer-index { background: linear-gradient(135deg, var(--accent), #5b7cff); }
+  .l2 .layer-index { background: linear-gradient(135deg, var(--accent-2), #7a55e0); }
+  .l3 .layer-index { background: linear-gradient(135deg, var(--accent-3), #30a89c); }
+  .l4 .layer-index { background: linear-gradient(135deg, var(--accent-4), #d97f3c); }
+  .l5 .layer-index { background: linear-gradient(135deg, var(--accent-5), #d85472); }
+  .l6 .layer-index { background: linear-gradient(135deg, #e4e8ff, #aab3d6); }
+
+  .l1 { border-left: 3px solid var(--accent); }
+  .l2 { border-left: 3px solid var(--accent-2); }
+  .l3 { border-left: 3px solid var(--accent-3); }
+  .l4 { border-left: 3px solid var(--accent-4); }
+  .l5 { border-left: 3px solid var(--accent-5); }
+  .l6 { border-left: 3px solid var(--ink); }
+
+  /* Tiles inside layers */
+  .tiles {
+    display: grid; gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+  .tile {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 12px 14px;
+    transition: transform .18s ease, border-color .18s ease, background .18s ease;
+    min-height: 88px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .tile:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-strong);
+    background: rgba(255,255,255,0.05);
+  }
+  .tile .t-title { font-weight: 600; font-size: 14px; }
+  .tile .t-desc { font-size: 12.5px; color: var(--ink-dim); }
+  .tile .t-tag {
+    margin-top: 4px;
+    display: inline-block; font-size: 10.5px;
+    color: var(--ink);
+    background: rgba(124,156,255,0.15);
+    border: 1px solid rgba(124,156,255,0.3);
+    padding: 2px 8px; border-radius: 999px;
+    width: fit-content;
+  }
+  .tile.deterministic .t-tag { background: rgba(74,222,128,0.14); border-color: rgba(74,222,128,0.3); }
+  .tile.registry .t-tag { background: rgba(79,209,197,0.14); border-color: rgba(79,209,197,0.32); }
+  .tile.llm .t-tag { background: rgba(246,169,106,0.16); border-color: rgba(246,169,106,0.3); }
+  .tile.governance .t-tag { background: rgba(168,133,255,0.16); border-color: rgba(168,133,255,0.32); }
+  .tile.enforcement .t-tag { background: rgba(255,125,155,0.16); border-color: rgba(255,125,155,0.32); }
+
+  /* Control plane special panel */
+  .cp-grid {
+    display: grid; gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+  .cp-tile {
+    background: linear-gradient(135deg, rgba(168,133,255,0.10), rgba(124,156,255,0.06));
+    border: 1px solid rgba(168,133,255,0.25);
+    border-radius: 14px; padding: 14px;
+  }
+  .cp-tile h4 { margin: 0 0 4px; font-size: 14px; }
+  .cp-tile p { margin: 0; font-size: 12.5px; color: var(--ink-dim); }
+  .cp-tile .spec {
+    margin-top: 8px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 11.5px; color: #cfd8ff;
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--border);
+    border-radius: 8px; padding: 6px 8px;
+    overflow-x: auto; white-space: nowrap;
+  }
+
+  /* Cross-cutting panel (observability) */
+  .cross {
+    display: grid; gap: 12px;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+
+  /* Footer summary */
+  .summary-grid {
+    display: grid; gap: 14px; margin-top: 28px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+  .summary-card {
+    background: linear-gradient(180deg, var(--panel), var(--panel-2));
+    border: 1px solid var(--border-strong);
+    border-radius: 16px; padding: 18px;
+    box-shadow: var(--shadow);
+  }
+  .summary-card h3 { margin: 0 0 8px; font-size: 15px; }
+  .summary-card p { margin: 0; font-size: 13px; color: var(--ink-dim); }
+  .summary-card .kpi {
+    font-size: 26px; font-weight: 700;
+    background: linear-gradient(90deg, var(--accent), var(--accent-3));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    margin-bottom: 2px;
+  }
+  .summary-card.warn .kpi { background: linear-gradient(90deg, var(--accent-4), var(--accent-5)); -webkit-background-clip: text; background-clip: text; color: transparent;}
+  .summary-card.good .kpi { background: linear-gradient(90deg, var(--ok), var(--accent-3)); -webkit-background-clip: text; background-clip: text; color: transparent;}
+
+  /* Score meter */
+  .meter { margin-top: 14px; }
+  .meter .bar { height: 8px; width: 100%; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden; border: 1px solid var(--border); }
+  .meter .fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--bad), var(--warn) 45%, var(--ok));
+    border-radius: 999px;
+  }
+  .meter .ticks {
+    display: flex; justify-content: space-between;
+    font-size: 11px; color: var(--ink-dim); margin-top: 6px;
+  }
+  .cur-marker {
+    position: relative; height: 0;
+  }
+  .cur-marker span {
+    position: absolute; top: -22px; transform: translateX(-50%);
+    font-size: 11px; color: var(--ink);
+    background: var(--panel-2); border: 1px solid var(--border-strong);
+    padding: 2px 8px; border-radius: 999px; white-space: nowrap;
+  }
+
+  footer {
+    margin-top: 30px;
+    color: var(--ink-dim); font-size: 12px; text-align: center;
+  }
+  footer code { color: var(--ink); }
+
+  /* Collapsible details */
+  details {
+    margin-top: 14px;
+    background: rgba(0,0,0,0.18);
+    border: 1px dashed var(--border-strong);
+    border-radius: 12px; padding: 10px 14px;
+  }
+  details[open] summary { color: var(--ink); }
+  summary {
+    cursor: pointer; font-size: 13px; color: var(--ink-dim);
+    outline: none; user-select: none;
+  }
+  details ul { margin: 10px 0 4px 18px; padding: 0; font-size: 12.5px; color: var(--ink); }
+  details ul li { margin-bottom: 4px; }
+
+  @media (max-width: 720px) {
+    .hero h1 { font-size: 22px; }
+    .hero-meta { grid-template-columns: repeat(2, 1fr); }
+    .layer-head h2 { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HERO -->
+  <header class="hero">
+    <span class="hero-kicker">Target Architecture · Enterprise Production-Grade</span>
+    <h1>
+      LlullGen <span class="grad">Ontology &amp; Semantic Knowledge Layer</span>
+    </h1>
+    <p>
+      A six-layer architecture that moves semantics from <em>prose-in-prompts</em> to <em>typed, versioned, governed data</em>.
+      Registries own meaning; prompts borrow it. LLMs classify and narrate; the control plane binds, validates, and enforces.
+    </p>
+
+    <div class="hero-meta">
+      <div class="metric">
+        <div class="label">Current state score</div>
+        <div class="value bad">~1.8 / 5</div>
+      </div>
+      <div class="metric">
+        <div class="label">Target state score</div>
+        <div class="value good">≥ 3.5 / 5</div>
+      </div>
+      <div class="metric">
+        <div class="label">Core principle</div>
+        <div class="value">Semantics as data</div>
+      </div>
+      <div class="metric">
+        <div class="label">Migration</div>
+        <div class="value warn">Incremental, domain-by-domain</div>
+      </div>
+    </div>
+
+    <div class="meter" aria-label="Maturity meter">
+      <div class="bar"><div class="fill" style="width:36%"></div></div>
+      <div class="cur-marker"><span style="left:36%">Now · 1.8</span><span style="left:70%">Target · 3.5</span></div>
+      <div class="ticks">
+        <span>0 · Absent</span>
+        <span>1 · Weak</span>
+        <span>2 · Partial</span>
+        <span>3 · Functional</span>
+        <span>4 · Strong</span>
+        <span>5 · Governed</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- LEGEND -->
+  <div class="legend" role="list">
+    <span class="chip" role="listitem"><span class="dot l1"></span>L1 Interpretation</span>
+    <span class="chip" role="listitem"><span class="dot l2"></span>L2 Semantic Control Plane</span>
+    <span class="chip" role="listitem"><span class="dot l3"></span>L3 Mediation &amp; Planning</span>
+    <span class="chip" role="listitem"><span class="dot l4"></span>L4 Execution</span>
+    <span class="chip" role="listitem"><span class="dot l5"></span>L5 Verification &amp; Synthesis</span>
+    <span class="chip" role="listitem"><span class="dot l6"></span>L6 Observability &amp; Governance</span>
+  </div>
+
+  <!-- ENTRY -->
+  <div class="flow-arrow" aria-hidden="true">
+    <div class="badge">Natural-language query · role · session · locale</div>
+    <div class="line down"></div>
+    <div class="caret"></div>
+  </div>
+
+  <!-- L1 -->
+  <section class="layer l1">
+    <div class="layer-head">
+      <div class="layer-index">1</div>
+      <h2>Interpretation Layer</h2>
+      <span class="tag">Produces typed SemanticIR</span>
+    </div>
+    <p style="margin:0 0 12px;color:var(--ink-dim);font-size:13px;">
+      Staged, typed pipeline. Registry-first resolution; embeddings and LLMs only as fallbacks. Each stage produces a testable slice of the IR with source provenance.
+    </p>
+    <div class="tiles">
+      <div class="tile deterministic">
+        <div class="t-title">I0 · Grounding Extractor</div>
+        <div class="t-desc">Deterministic token, year, month &amp; locale extraction from raw user text only.</div>
+        <span class="t-tag">deterministic</span>
+      </div>
+      <div class="tile llm">
+        <div class="t-title">I1 · Follow-up Resolver</div>
+        <div class="t-desc">Cheap LLM + GroundedTokens guardrails; emits typed FollowUpDecision.</div>
+        <span class="t-tag">LLM + guardrails</span>
+      </div>
+      <div class="tile registry">
+        <div class="t-title">I2 · Domain Resolver</div>
+        <div class="t-desc">Selects domain bundle, vocab, fiscal calendar, active overlays.</div>
+        <span class="t-tag">registry</span>
+      </div>
+      <div class="tile registry">
+        <div class="t-title">I3 · Term Resolver</div>
+        <div class="t-desc">Registry → embedding → LLM. Outputs typed ResolvedEntity / Metric / Dimension.</div>
+        <span class="t-tag">registry-first</span>
+      </div>
+      <div class="tile llm">
+        <div class="t-title">I4 · Intent Classifier</div>
+        <div class="t-desc">Single canonical Intent taxonomy across the system.</div>
+        <span class="t-tag">LLM-bounded</span>
+      </div>
+      <div class="tile deterministic">
+        <div class="t-title">I5 · Filter Resolver</div>
+        <div class="t-desc">Time ranges, geo, categorical, thresholds — grounded in user text.</div>
+        <span class="t-tag">deterministic</span>
+      </div>
+      <div class="tile deterministic">
+        <div class="t-title">I6 · Agent Selector</div>
+        <div class="t-desc">Small policy + tiebreaker LLM; picks primary agent &amp; pipeline.</div>
+        <span class="t-tag">policy + LLM</span>
+      </div>
+      <div class="tile registry">
+        <div class="t-title">I7 · IR Assembler</div>
+        <div class="t-desc">Validates and assembles final SemanticIR (Pydantic).</div>
+        <span class="t-tag">typed output</span>
+      </div>
+    </div>
+
+    <details>
+      <summary>SemanticIR fields (contract between L1 and L3)</summary>
+      <ul>
+        <li><code>intent · primary_agent · metrics[] · dimensions[] · filters[] · grain · time_range</code></li>
+        <li><code>entities[] · ambiguities[] · is_follow_up · follow_up_type · reuse_refs[]</code></li>
+        <li><code>grounding_evidence[] · confidence · warnings[]</code></li>
+      </ul>
+    </details>
+  </section>
+
+  <div class="flow-arrow"><div class="line"></div><div class="badge">SemanticIR</div><div class="line down"></div><div class="caret"></div></div>
+
+  <!-- L2 -->
+  <section class="layer l2">
+    <div class="layer-head">
+      <div class="layer-index">2</div>
+      <h2>Semantic Control Plane</h2>
+      <span class="tag">Source of truth for meaning</span>
+    </div>
+    <p style="margin:0 0 12px;color:var(--ink-dim);font-size:13px;">
+      Typed, versioned, governed registries. Every semantic artifact has <code>id · version · status · owners · changed_at</code>. Graph-backed for sub-ms lookups.
+    </p>
+
+    <div class="cp-grid">
+      <div class="cp-tile">
+        <h4>🧬 Ontology</h4>
+        <p>Concepts, relations, hierarchies, mereology.</p>
+        <div class="spec">Concept(kind: entity | metric | dimension | attribute | relation | event)</div>
+      </div>
+      <div class="cp-tile">
+        <h4>📐 Metric Registry</h4>
+        <p>Formula as AST, unit, grain, additivity, SLA.</p>
+        <div class="spec">Metric.formula: Formula { expression, sql_template, verification_queries }</div>
+      </div>
+      <div class="cp-tile">
+        <h4>🧭 Dimension Registry</h4>
+        <p>Hierarchies, attributes, default grain.</p>
+        <div class="spec">Dimension.hierarchy: [country → region → province → city]</div>
+      </div>
+      <div class="cp-tile">
+        <h4>🪪 Entity Registry</h4>
+        <p>Canonical names, aliases, bindings to physical fields.</p>
+        <div class="spec">EntityBinding { entity_id, table_fqn, identifier_column, attr→col }</div>
+      </div>
+      <div class="cp-tile">
+        <h4>📚 Business Rule Registry</h4>
+        <p>Typed &amp; discriminated — no free text.</p>
+        <div class="spec">BusinessRule.category: metric_formula | filter_convention | …</div>
+      </div>
+      <div class="cp-tile">
+        <h4>🔗 Mapping Registry</h4>
+        <p>MetricBinding: primary table, grain cols, join paths, filter predicates.</p>
+        <div class="spec">MetricBinding.dimension_join_paths: dim_id → JoinPath</div>
+      </div>
+      <div class="cp-tile">
+        <h4>🗣️ Vocabulary Registry</h4>
+        <p>Per-domain lexicons: geo, metric terms, stopwords, months, locales.</p>
+        <div class="spec">config/vocab/{domain}.yaml</div>
+      </div>
+      <div class="cp-tile">
+        <h4>⏳ Time &amp; Grain Registry</h4>
+        <p>Fiscal calendar, historical/forecast boundary, indicator frequencies.</p>
+        <div class="spec">TimeSemantics.indicator_frequencies: { ind_id → daily|monthly|… }</div>
+      </div>
+      <div class="cp-tile">
+        <h4>🛡️ Policy Registry</h4>
+        <p>SQL safety rules: detectors, severities, scopes, domain packs.</p>
+        <div class="spec">PolicyRule.detector: regex | ast_matcher | predicate_fn</div>
+      </div>
+      <div class="cp-tile">
+        <h4>❓ Ambiguity Registry</h4>
+        <p>Known conflicts + disambiguation recipes + defaults.</p>
+        <div class="spec">AmbiguitySpec.candidate_resolutions + detection_hooks</div>
+      </div>
+      <div class="cp-tile">
+        <h4>🕸️ Ontology Store</h4>
+        <p>In-memory LPG (networkx / rustworkx) + pgvector index; Postgres/Neo4j persistence. Optional SKOS/OWL export.</p>
+        <div class="spec">O(ms) queries: "which metrics use dim X?", "join path M → D"</div>
+      </div>
+      <div class="cp-tile">
+        <h4>🏛️ Governance Service</h4>
+        <p>Owners, versions, approvals, deprecation, breaking-change detection.</p>
+        <div class="spec">status: draft | certified | deprecated · replacement_id · sunset_date</div>
+      </div>
+    </div>
+
+    <details>
+      <summary>Storage &amp; GitOps layout</summary>
+      <ul>
+        <li><code>/semantics/core/</code> — shared concepts (time, geography, money, person, org)</li>
+        <li><code>/semantics/domains/{qp,finance,…}/</code> — per-domain overlays (metrics, bindings, rules, vocab, time)</li>
+        <li><code>/semantics/_schemas/</code> — JSON Schemas per artifact type</li>
+        <li>PR merge → migrator syncs to Postgres with immutable <code>version</code> history</li>
+      </ul>
+    </details>
+  </section>
+
+  <div class="flow-arrow"><div class="line"></div><div class="badge">Resolved SemanticIR</div><div class="line down"></div><div class="caret"></div></div>
+
+  <!-- L3 -->
+  <section class="layer l3">
+    <div class="layer-head">
+      <div class="layer-index">3</div>
+      <h2>Semantic Mediation &amp; Planning</h2>
+      <span class="tag">Emits typed SemanticPlan</span>
+    </div>
+    <div class="tiles">
+      <div class="tile deterministic">
+        <div class="t-title">M1 · Feasibility Checker</div>
+        <div class="t-desc">Additivity, grain compatibility, fiscal bounds, authorizations.</div>
+        <span class="t-tag">deterministic</span>
+      </div>
+      <div class="tile deterministic">
+        <div class="t-title">M2 · Clarification Gate</div>
+        <div class="t-desc">Emits typed Clarification on unresolved AmbiguityRecords (locale-aware).</div>
+        <span class="t-tag">typed output</span>
+      </div>
+      <div class="tile registry">
+        <div class="t-title">M3 · Plan Composer</div>
+        <div class="t-desc">Selects metric bindings &amp; join paths; resolves filter predicates; decides reuse vs. re-execute.</div>
+        <span class="t-tag">registry-driven</span>
+      </div>
+      <div class="tile enforcement">
+        <div class="t-title">M4 · Authorization Binder</div>
+        <div class="t-desc">Row- and column-level policies; data-product contracts.</div>
+        <span class="t-tag">enforcement</span>
+      </div>
+      <div class="tile deterministic">
+        <div class="t-title">M5 · Output Schema Declaration</div>
+        <div class="t-desc">Expected columns, types, units, grain — a verifiable contract for L4/L5.</div>
+        <span class="t-tag">contract</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="flow-arrow"><div class="line"></div><div class="badge">SemanticPlan</div><div class="line down"></div><div class="caret"></div></div>
+
+  <!-- L4 -->
+  <section class="layer l4">
+    <div class="layer-head">
+      <div class="layer-index">4</div>
+      <h2>Execution Layer</h2>
+      <span class="tag">Constrained generation &amp; enforcement</span>
+    </div>
+    <div class="tiles">
+      <div class="tile registry">
+        <div class="t-title">SQL / API Composer</div>
+        <div class="t-desc">Jinja-templated, plan-driven. LLM called only for optional unconstrained regions.</div>
+        <span class="t-tag">template-driven</span>
+      </div>
+      <div class="tile deterministic">
+        <div class="t-title">Time Boundary Rewriter</div>
+        <div class="t-desc">Enforces historical/forecast boundary from TimeSemantics — no prompt prose.</div>
+        <span class="t-tag">deterministic</span>
+      </div>
+      <div class="tile deterministic">
+        <div class="t-title">Indicator Frequency Rewriter</div>
+        <div class="t-desc">First-of-month/week/day conventions from the registry.</div>
+        <span class="t-tag">deterministic</span>
+      </div>
+      <div class="tile enforcement">
+        <div class="t-title">Additivity Guard</div>
+        <div class="t-desc">Refuses non-additive metric aggregations over incompatible dims.</div>
+        <span class="t-tag">enforcement</span>
+      </div>
+      <div class="tile enforcement">
+        <div class="t-title">Policy Gateway</div>
+        <div class="t-desc">Single chokepoint · core blocks always · domain packs YAML-asserted at startup.</div>
+        <span class="t-tag">gateway</span>
+      </div>
+      <div class="tile enforcement">
+        <div class="t-title">Output Schema Validator</div>
+        <div class="t-desc">Real semantic validation: columns, types, units, grain, filters present.</div>
+        <span class="t-tag">enforcement</span>
+      </div>
+      <div class="tile deterministic">
+        <div class="t-title">Executor &amp; Retry</div>
+        <div class="t-desc">Pooled connections, EXPLAIN pre-check for expensive plans, failure-scoped retries.</div>
+        <span class="t-tag">runtime</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="flow-arrow"><div class="line"></div><div class="badge">DataFrames + structural lineage</div><div class="line down"></div><div class="caret"></div></div>
+
+  <!-- L5 -->
+  <section class="layer l5">
+    <div class="layer-head">
+      <div class="layer-index">5</div>
+      <h2>Verification &amp; Synthesis</h2>
+      <span class="tag">Truthfulness &amp; lineage</span>
+    </div>
+    <div class="tiles">
+      <div class="tile deterministic">
+        <div class="t-title">Factual Verifier</div>
+        <div class="t-desc">Extracts typed FactualAssertions; independently recomputes aggregates where feasible.</div>
+        <span class="t-tag">deterministic</span>
+      </div>
+      <div class="tile llm">
+        <div class="t-title">Synthesis</div>
+        <div class="t-desc">Locale-aware narrative; forbidden to introduce terms outside the plan — enforced post-generation.</div>
+        <span class="t-tag">LLM-bounded</span>
+      </div>
+      <div class="tile enforcement">
+        <div class="t-title">Reconciler</div>
+        <div class="t-desc">Programmatic check of synthesis text against assertions; bounded re-synthesis on mismatch.</div>
+        <span class="t-tag">enforcement</span>
+      </div>
+      <div class="tile governance">
+        <div class="t-title">Lineage Writer</div>
+        <div class="t-desc">Attaches {metrics, dims, filters, rules, policies, mappings, ambiguities}@version to every response.</div>
+        <span class="t-tag">governance</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="flow-arrow"><div class="line"></div><div class="badge">Answer + LineageRecord</div><div class="line down"></div><div class="caret"></div></div>
+
+  <!-- L6 -->
+  <section class="layer l6">
+    <div class="layer-head">
+      <div class="layer-index">6</div>
+      <h2>Observability &amp; Governance Backplane</h2>
+      <span class="tag">Cross-cutting</span>
+    </div>
+    <div class="cross">
+      <div class="tile governance">
+        <div class="t-title">Lineage Store</div>
+        <div class="t-desc">OpenLineage-compatible; queryable; auditable; reproducibility snapshots.</div>
+        <span class="t-tag">governance</span>
+      </div>
+      <div class="tile governance">
+        <div class="t-title">Semantic Metrics</div>
+        <div class="t-desc">Resolution source mix, ambiguity rate, binding coverage, schema-mismatch rate.</div>
+        <span class="t-tag">observability</span>
+      </div>
+      <div class="tile governance">
+        <div class="t-title">Drift Detection</div>
+        <div class="t-desc">Embedding distance vs. canonical descriptions; alerts on outliers &amp; neologisms.</div>
+        <span class="t-tag">governance</span>
+      </div>
+      <div class="tile governance">
+        <div class="t-title">Golden Eval Harness</div>
+        <div class="t-desc">Per-domain (query → IR → Plan → SQL shape) goldens; IR-gate &amp; SQL-equivalence-gate in CI.</div>
+        <span class="t-tag">quality</span>
+      </div>
+      <div class="tile governance">
+        <div class="t-title">Impact Analysis</div>
+        <div class="t-desc">On PR: which queries, which lineage records depend on the artifact being changed.</div>
+        <span class="t-tag">governance</span>
+      </div>
+      <div class="tile governance">
+        <div class="t-title">Audit Log</div>
+        <div class="t-desc">Approvals, deprecations, policy-mode changes, canary verification outcomes.</div>
+        <span class="t-tag">compliance</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- KPIs / SUMMARY -->
+  <section class="summary-grid" aria-label="Acceptance summary">
+    <div class="summary-card good">
+      <div class="kpi">100 %</div>
+      <h3>Typed artifacts</h3>
+      <p>Every metric, dimension, entity, rule, binding carries <code>id · version · status · owners</code>. Nothing ships uncertified to production.</p>
+    </div>
+    <div class="summary-card">
+      <div class="kpi">1 IR</div>
+      <h3>Canonical representation</h3>
+      <p>One SemanticIR from interpretation to execution. No parallel intent vocabularies. No <code>List[str]</code> entities.</p>
+    </div>
+    <div class="summary-card">
+      <div class="kpi">0 prose</div>
+      <h3>No free-text rules</h3>
+      <p>Business rules discriminated by <code>category</code>. Time, grain, additivity enforced in code. LLMs borrow semantics — they do not contain them.</p>
+    </div>
+    <div class="summary-card warn">
+      <div class="kpi">≈ 400–600 ms</div>
+      <h3>Interp → plan budget</h3>
+      <p>Registry-first lookups dominate; SQL composition is template-driven. LLMs are bounded and scoped.</p>
+    </div>
+    <div class="summary-card">
+      <div class="kpi">N goldens</div>
+      <h3>Per-domain regressions</h3>
+      <p>(query → IR → plan → SQL shape) fixtures enforced in CI. IR-gate + SQL-equivalence-gate block deploys.</p>
+    </div>
+    <div class="summary-card good">
+      <div class="kpi">Lineage ⇒ Trust</div>
+      <h3>Every answer is traceable</h3>
+      <p>Responses carry <code>LineageRecord</code>: metrics, dimensions, filters, rules, policies, mappings, ambiguities — all versioned.</p>
+    </div>
+  </section>
+
+  <footer>
+    Target Architecture · Ontology &amp; Semantic Knowledge Layer — <code>LlullGen</code> · ships meaning as data, not prose.
+  </footer>
+</div>
+</body>
+</html>
